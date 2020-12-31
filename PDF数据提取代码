@@ -1,0 +1,116 @@
+import docx
+from docx import Document #导入库
+
+#把doc文档转换为docx文档才能读取
+# import win32com.client as wc
+# word = wc.Dispatch("Word.Application")
+# doc = word.Documents.Open(r"G:\\接单工作\\2020-12-29-煤矿产能地图\\全国煤炭企业产能分布.doc")
+# doc.SaveAs(r"G:\\接单工作\\2020-12-29-煤矿产能地图\\全国煤炭企业产能分布.docx", 12, False, "", True, "", False, False, False, False)
+# doc.Close()
+# word.Quit()
+
+import xlsxwriter
+# 写excel
+workbook = xlsxwriter.Workbook('全国煤炭企业产能分布1.xlsx')  # 创建一个excel文件
+worksheet = workbook.add_worksheet(u'sheet1')  # 在文件中创建一个名为TEST的sheet,不加名字默认为sheet1
+
+# # worksheet.set_column('A:A', 20)  # 设置第一列宽度为20像素
+# # bold = workbook.add_format({'bold': True})  # 设置一个加粗的格式对象
+# # worksheet.write('A1', 'HELLO')  # 在A1单元格写上HELLO
+# # worksheet.write('A2', 'WORLD', bold)  # 在A2上写上WORLD,并且设置为加粗
+# # worksheet.write('B2', U'中文测试', bold)  # 在B2上写上中文加粗
+# # worksheet.write(2, 0, 32)  # 使用行列的方式写上数字32,35,5
+# # worksheet.write(3, 0, 35.5)  # 使用行列的时候第一行起始为0,所以2,0代表着第三行的第一列,等价于A4
+# # worksheet.write(4, 0, '=SUM(A3:A4)')  # 写上excel公式
+#
+worksheet.write(0, 0, U'序号')
+worksheet.write(0, 1, U'省份')
+worksheet.write(0, 2, U'城市')
+worksheet.write(0, 3, U'煤矿名称')
+worksheet.write(0, 4, U'生产能力（万吨/年）')
+
+sfList = ['河北省','山西省','辽宁省','吉林省','黑龙江省','江苏省','浙江省','安徽省','福建省','江西省','山东省','河南省','湖北省','湖南省','广东省','海南省','四川省','贵州省','云南省','陕西省','甘肃省','青海省','台湾省','内蒙古自治区','广西壮族自治区','西藏自治区','宁夏回族自治区','新疆维吾尔自治区','北京市','天津市','上海市','重庆市','香港特别行政区','澳门特别行政区']
+rowH = []
+rowH2 = []
+rowH3 = []
+cs = 0
+sf = ''
+xq = ''
+id = ''
+name = ''
+cn = ''
+row = 1
+
+
+path = "全国煤炭企业产能分布.docx" #文件路径
+document = Document(path) #读入文件
+tables = document.tables #获取文件中的表格集
+
+for i in tables:
+    # print(len(i.rows))
+    for j in range(0,len(i.rows)):
+        row_cells = i.rows[j].cells
+        for cell in row_cells:
+            # print(cell.text)
+            rowH.append(cell.text)
+
+        #处理数据
+        rowH = [i for i in rowH if i != '']
+        rowH2 = list(set(rowH))
+        rowH2.sort(key=rowH.index)
+
+        rowH = []
+
+        if rowH2 == []:
+            continue
+        a = '序号'
+        b = '（万吨/年）'
+        if a in rowH2:
+            continue
+        elif b in rowH2:
+            continue
+
+        if len(rowH2)==1 and rowH2[0] not in sfList:
+            continue
+
+        if len(rowH2) > 3:
+            rowH2 = rowH2[0:3]
+
+        if len(rowH2)==1:
+            sf = rowH2[0]
+            continue
+
+        if len(rowH2)==2:
+            xq = rowH2[1]
+            cs = 0
+            continue
+
+        if len(rowH2) == 3:
+            if cs%2 == 0:
+                id = rowH2[0]
+                name = rowH2[1]
+                cn = rowH2[2]
+            else:
+                if name != rowH2[1]:
+                    name = name + rowH2[1]
+                rowH3.append(id)
+                rowH3.append(sf)
+                rowH3.append(xq)
+                rowH3.append(name)
+                rowH3.append(cn)
+            cs = cs + 1
+        print(rowH3)
+
+        if len(rowH3) != 0:
+            worksheet.write(row, 0, rowH3[0])
+            worksheet.write(row, 1, rowH3[1])
+            worksheet.write(row, 2, rowH3[2])
+            worksheet.write(row, 3, rowH3[3])
+            worksheet.write(row, 4, rowH3[4])
+            row = row + 1
+
+
+        rowH3 = []
+
+
+workbook.close()
